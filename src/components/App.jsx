@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { nanoid } from 'nanoid'
 import { ContactForm } from "./ContactForm/ContactForm";
 import { ContactList } from "./ContactList/ContactList";
@@ -6,7 +6,7 @@ import { Filter } from "./Filter/Filter";
 import { Layout } from "./Layout";
 
 export const App = () => {
-   const loginInputId = nanoid();
+    let loginInputId = nanoid();
 
  
   const [contacts, setContacts] = useState([
@@ -28,11 +28,11 @@ export const App = () => {
     .map((contact) => contact.name.toLowerCase())
     .includes(name.value.toLowerCase());
       
-   if (!isExistingContact) { setContacts(prevState => ({
-      contacts: [...prevState.contacts, newContact], 
-      name: '',
-      number: '',
-    }));} else { alert(`${name.value} is already in contacts!`)}
+     if (!isExistingContact) {
+      setContacts(prevState => [...prevState, newContact]);
+      setName('');
+      setNumber('');
+    } else { alert(`${name.value} is already in contacts!`)}
      e.currentTarget.reset();
   }
 
@@ -44,41 +44,29 @@ const filterContacts = () => {
 };
 
 const  handleContactDelete = (contactId) => {
-   setContacts(prevState => {
-      return {
-        contacts: prevState.contacts.filter(contact => contact.id !== contactId),
-        filter: ''
+  setContacts(prevState => prevState.filter(contact => contact.id !== contactId));
+        setFilter('');
 
       };
-    })
-
-  };
-
-
-  //  componentDidMount() {
-  //   const savedContacts = localStorage.getItem("contactsPhonebook");
-  //   if (savedContacts !== null) {
-  //     this.setState({
-  //       contacts: JSON.parse(savedContacts),
-  //     })
-  //   }
-  // }
-
-
-  // componentDidUpdate(prevState) {
-  //   if (prevState.contacts !== this.state.contacts) {
-  //     localStorage.setItem("contactsPhonebook", JSON.stringify(this.state.contacts))
-  //   }
-  // };
-  
   
 
 
+  useEffect(() => {
+  const savedContacts = localStorage.getItem("contactsPhonebook");
+  if (savedContacts !== null) {
+    setContacts(JSON.parse(savedContacts));
+  }
+}, []);
+
+
+  useEffect(() => {localStorage.setItem("contactsPhonebook", JSON.stringify(contacts))}, [contacts]);
+
+
+  
     return (
       <Layout>
       <h1>Phonebook</h1>
         <ContactForm
-          saveContactsStorage={this.componentDidUpdate}
           addContactName={handleNameSet}
           setNanoidId={loginInputId}
           onChangeName={e => setName(e.target.value)}
@@ -91,7 +79,8 @@ const  handleContactDelete = (contactId) => {
           filterInputValue={filter}
           onChangeInputFilter={e => setFilter(e.target.value )} />
         <ContactList
-          contacts={filterContacts}
-          onContactDelete={handleContactDelete} />
+          contacts={filterContacts()}
+          onContactDelete={handleContactDelete}
+        />
 </Layout>
   );}
